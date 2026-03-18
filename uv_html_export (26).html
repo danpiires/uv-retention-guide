@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UV | Retention, Downgrade and Cancelation</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F4F4F4;color:#290B4D;min-height:100vh}
+  .wrap{max-width:720px;margin:0 auto;padding:24px 16px 60px}
+  h1{font-size:22px;font-weight:700;color:#290B4D;margin-bottom:4px}
+  h2{font-size:16px;font-weight:600;color:#534AB7;margin:24px 0 12px;border-bottom:2px solid #AFA9EC;padding-bottom:6px}
+  h3{font-size:14px;font-weight:600;color:#1a1a18;margin:16px 0 8px}
+  p{font-size:13px;color:#5a5a55;line-height:1.7;margin-bottom:10px}
+  .eyebrow{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .divider{border-top:2px solid #AFA9EC;margin:24px 0}
+  .nav{display:flex;flex-direction:column;align-items:flex-start;background:#FFFFFF;border-bottom:2px solid #AFA9EC;padding:12px 16px 10px;position:sticky;top:0;z-index:100;gap:8px}
+  .nav-top{display:flex;align-items:center;justify-content:space-between;width:100%}
+  .nav-brand{font-size:18px;font-weight:700;color:#290B4D;display:flex;align-items:center;gap:10px}
+  .nav-btns{display:flex;flex-wrap:wrap;gap:6px}
+  .nav-btn{padding:5px 12px;border-radius:16px;border:1px solid #d0cfe8;background:#EEEDFE;color:#534AB7;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+  .nav-btn:hover{background:#d9d7f8}
+  .back-btn{padding:5px 14px;border-radius:16px;border:1px solid #d5d4cc;background:#fff;color:#5a5a55;font-size:12px;cursor:pointer;font-family:inherit}
+  .back-btn:hover{background:#f0efe8}
+  .page{display:none;animation:fadein .2s ease}
+  .page.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .path-btn{display:block;width:100%;text-align:left;border-radius:12px;padding:16px 20px;margin-bottom:10px;cursor:pointer;font-family:inherit;border:1.5px solid;transition:all .15s}
+  .path-btn:hover{transform:translateY(-2px)}
+  .path-btn .pb-tag{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .path-btn .pb-title{font-size:15px;font-weight:700;margin-bottom:2px}
+  .path-btn .pb-sub{font-size:12px;font-weight:400}
+  .pb-purple{background:#EEEDFE;border-color:#7F77DD;color:#26215C}
+  .pb-purple .pb-tag{color:#534AB7}
+  .pb-purple .pb-sub{color:#534AB7}
+  .pb-teal{background:#E1F5EE;border-color:#5DCAA5;color:#04342C}
+  .pb-teal .pb-tag{color:#0F6E56}
+  .pb-teal .pb-sub{color:#0F6E56}
+  .pb-coral{background:#FAECE7;border-color:#F0997B;color:#4A1B0C}
+  .pb-coral .pb-tag{color:#993C1D}
+  .pb-coral .pb-sub{color:#993C1D}
+  .action-list{list-style:none;margin-bottom:12px}
+  .action-list li{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;font-size:13px;line-height:1.65;color:#1a1a18}
+  .num{min-width:24px;height:24px;border-radius:12px;background:#534AB7;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .num.coral{background:#D85A30}
+  .num.teal{background:#1D9E75}
+  .bullet{min-width:8px;height:8px;border-radius:4px;background:#AFA9EC;flex-shrink:0;margin-top:7px}
+  .warn{background:#FFF3CD;border:2px solid #EF9F27;border-radius:8px;padding:10px 14px;font-size:13px;color:#412402;margin:10px 0}
+  .info{background:#EEEDFE;border:2px solid #AFA9EC;border-radius:8px;padding:10px 14px;font-size:13px;color:#26215C;margin:10px 0}
+  .macro{background:rgba(127,119,221,0.07);border-left:4px solid #7F77DD;border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;color:#1a1a18;font-style:italic;margin:8px 0;line-height:1.7}
+  code{background:#f0efe8;padding:1px 6px;border-radius:4px;font-size:12px;font-family:monospace;color:#534AB7}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+  .tbl th{background:#EEEDFE;color:#534AB7;font-weight:600;padding:8px 12px;text-align:left;border-bottom:2px solid #AFA9EC}
+  .tbl td{padding:8px 12px;border-bottom:1px solid #e0dfd6;line-height:1.5;vertical-align:top;color:#1a1a18;background:#fff}
+  .tbl tr:nth-child(even) td{background:#faf9f6}
+  .opt-card{border-radius:10px;border:1px solid #d5d4cc;background:#fff;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:block;width:100%;text-align:left;font-family:inherit;transition:all .15s}
+  .opt-card:hover{border-color:#7F77DD;background:#faf9fe}
+  .opt-card .oc-tag{font-size:11px;font-weight:600;color:#993C1D;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+  .opt-card .oc-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+  .opt-card .oc-sub{font-size:12px;color:#888}
+  .tab-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .tab{padding:6px 14px;border-radius:20px;border:1px solid #d5d4cc;background:#fff;color:#888;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;font-weight:500}
+  .tab.active{border-color:#7F77DD;background:#EEEDFE;color:#26215C;font-weight:600}
+  .sc-card{border-radius:12px;border:2px solid;padding:14px 16px;margin-bottom:12px}
+  .sc-tag{display:inline-block;font-size:11px;font-weight:600;border-radius:4px;padding:2px 8px;margin-bottom:6px}
+  .sc-title{font-size:14px;font-weight:600;margin-bottom:8px}
+  .sc-box{border-radius:8px;padding:12px 14px;margin-bottom:8px}
+  .sc-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .sc-text{font-size:13px;font-style:italic;line-height:1.65}
+  .sc-divider{border-top:1px solid;margin:10px 0}
+  .sc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+  .sc-tip-btn{background:none;border:none;font-size:12px;cursor:pointer;padding:0;font-family:inherit}
+  .sc-copy{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s;border:1px solid}
+  .sc-tip{border-radius:8px;border-left:3px solid;padding:10px 12px;font-size:12px;line-height:1.6;margin-top:8px}
+  .hidden{display:none}
+  .match-row{display:flex;gap:10px;padding:8px 12px;background:#faf9f6;border-radius:6px;border:1px solid #e0dfd6;margin-bottom:6px;font-size:13px;align-items:flex-start}
+  .match-row .mr-left{color:#888;min-width:180px;flex-shrink:0}
+  .match-row .mr-right{color:#534AB7;font-weight:600}
+  .shuf-row{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#faf9f6;border-radius:6px;border:1px solid #e0dfd6;margin-bottom:6px;flex-wrap:wrap;gap:6px}
+  .shuf-row .sr-label{font-size:13px;color:#5a5a55}
+  .shuf-row .sr-badge{font-size:11px;font-weight:600;background:#EEEDFE;color:#534AB7;border-radius:4px;padding:2px 8px}
+  .fnav{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+  .fnav-btn{padding:6px 14px;border-radius:16px;border:1px solid #d5d4cc;background:#fff;color:#888;font-size:12px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+  .fnav-btn:hover{border-color:#534AB7;color:#534AB7}
+  .pill-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .pill{flex:1;min-width:160px;border-radius:8px;padding:10px 14px}
+  .pill-blue{background:#E6F1FB;border:2px solid #85B7EB}
+  .pill-purple{background:#EEEDFE;border:2px solid #AFA9EC}
+  .pill .pill-tag{font-size:12px;font-weight:700;margin-bottom:4px}
+  .pill-blue .pill-tag{color:#185FA5}
+  .pill-purple .pill-tag{color:#534AB7}
+  .pill-blue .pill-desc{font-size:12px;color:#1a1a18;line-height:1.5}
+  .pill-purple .pill-desc{font-size:12px;color:#26215C;line-height:1.5}
+  .macro-card{background:#fff;border:1px solid #d5d4cc;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .macro-nome{font-size:11px;font-weight:600;color:#534AB7;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .macro-texto{font-size:13px;color:#1a1a18;line-height:1.7;white-space:pre-wrap;font-style:italic;background:#EEEDFE;border-left:3px solid #7F77DD;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:10px}
+  .macro-footer{display:flex;justify-content:flex-end}
+  .macro-copy{padding:5px 14px;border-radius:6px;border:1px solid #AFA9EC;background:#EEEDFE;color:#534AB7;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s}
+  img{mix-blend-mode:multiply}
+  @media(max-width:500px){.match-row{flex-direction:column}.match-row .mr-left{min-width:0}}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-top">
+    <span class="nav-brand">🟣 UV | Retention, Downgrade and Cancelation</span>
+    <img src="https://i.imgur.com/Ou96Aak.png" style="height:48px;object-fit:contain;align-self:center"/>
+  </div>
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="go('home')">Início</button>
+    <button class="nav-btn" onclick="go('retencao')">Retenção</button>
+    <button class="nav-btn" onclick="go('nuplus')">Nu+</button>
+    <button class="nav-btn" onclick="go('cancelamento')">Cancelamento</button>
+    <button class="nav-btn" onclick="go('scripts')">Scripts</button>
+    <button class="nav-btn" onclick="go('macros')">Macros</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px">
+    <img src="https://i.imgur.com/X9vmPMh.jpeg" style="width:90px;object-fit:contain;flex-shrink:0"/>
+    <div>
+      <div class="eyebrow">Time Ultravioleta</div>
+      <h1>Retenção e Cancelamento UV</h1>
+      <p style="margin-bottom:0">Guia de treinamento interativo · UV Advisory</p>
+    </div>
+  </div>
+  <h2>Introdução ao treinamento</h2>
+  <p>Bem-vindos ao treinamento de retenção e cancelamento do Ultravioleta. Esse guia vai te preparar para conduzir atendimentos consultivos e profundos com clientes que desejam cancelar sua assinatura UV de forma empática, personalizada e estratégica.</p>
+  <p>O que é o atendimento de retenção? Guiar o cliente em sua decisão, mesmo nos momentos mais difíceis. A ideia não é termos uma abordagem de vendas, nem um bloqueio para impedir o cancelamento — e sim um atendimento investigativo, consultivo, profundo e personalizado, que traga uma comunicação assertiva na hora de entrarmos com a retenção.</p>
+  <h2>Ações centrais de todo atendimento de retenção</h2>
+  <ul class="action-list">
+    <li><div class="num">1</div><div><strong>Empatia:</strong> Demonstre importância pela saída do cliente.</div></li>
+    <li><div class="num">2</div><div><strong>Entenda a motivação:</strong> Questione ao cliente o motivo de sua saída.</div></li>
+    <li><div class="num">3</div><div><strong>Escuta / leitura ativa:</strong> O que o cliente diz te dá os insumos para agir.</div></li>
+    <li><div class="num">4</div><div><strong>Entenda o problema:</strong> Após questioná-lo, utilize essa informação a seu favor.</div></li>
+    <li><div class="num">5</div><div><strong>Analise:</strong> Após ouvir, identifique qual problema você pode ajudar a resolver.</div></li>
+    <li><div class="num">6</div><div><strong>Solucione:</strong> Com base no diagnóstico, ofereça opções, alternativas e caminhos que façam sentido para o cliente.</div></li>
+  </ul>
+  <div class="divider"></div>
+  <h2>No atendimento, temos três caminhos possíveis</h2>
+  <p>Antes de iniciar, identifique o perfil do cliente no Shuffle e escolha o caminho adequado:</p>
+  <button class="path-btn pb-purple" onclick="go('retencao')" style="display:flex;align-items:center;gap:16px">
+    <img src="https://i.imgur.com/TWYqYqS.jpeg" style="width:70px;flex-shrink:0;object-fit:contain"/>
+    <div><div class="pb-tag">🟣 Retenção</div><div class="pb-title">Cliente UV — Retenção</div><div class="pb-sub">Fluxo consultivo completo · análise de perfil · scripts de retenção por perfil</div></div>
+  </button>
+  <button class="path-btn pb-teal" onclick="go('nuplus')" style="display:flex;align-items:center;gap:16px">
+    <img src="https://i.imgur.com/gCbPe4N.jpeg" style="width:70px;flex-shrink:0;object-fit:contain"/>
+    <div><div class="pb-tag">🟢 Downgrade</div><div class="pb-title">Cliente com oferta Nu+</div><div class="pb-sub">Apenas para elegíveis · verificar rollout obrigatoriamente antes de oferecer</div></div>
+  </button>
+  <button class="path-btn pb-coral" onclick="go('cancelamento')" style="display:flex;align-items:center;gap:16px">
+    <img src="https://i.imgur.com/U2U0C4A.jpeg" style="width:70px;flex-shrink:0;object-fit:contain"/>
+    <div><div class="pb-tag">🔴 Cancelamento</div><div class="pb-title">Cancelamento</div><div class="pb-sub">3 opções operacionais · passo a passo no Shuffle · macros prontas</div></div>
+  </button>
+  <button class="fnav-btn" style="margin-top:16px;width:100%;text-align:center" onclick="go('scripts')">Ver todos os cards de script →</button>
+</div>
+
+<!-- RETENÇÃO -->
+<div id="page-retencao" class="page">
+  <button class="back-btn" onclick="go('home')">← Voltar ao início</button>
+  <div style="display:flex;align-items:flex-start;gap:16px;margin-top:16px;margin-bottom:4px">
+    <img src="https://i.imgur.com/TWYqYqS.jpeg" style="width:90px;object-fit:contain;flex-shrink:0"/>
+    <h1>🟣 Cliente UV — Retenção</h1>
+  </div>
+  <div class="info">✨ Hora de brilhar. Vamos trabalhar com um atendimento consultivo, analítico e personalizado.</div>
+  <h2>Etapa 1 — Análise do perfil no Shuffle</h2>
+  <p>Antes de falar sobre cancelamento, levante o máximo de informações sobre o cliente:</p>
+  <ul class="action-list">
+    <li><div class="bullet"></div><div>Benefícios ativos: NuTag, Max, Nu Viagens, Priority Pass, eSIM, ChatGPT, Conta Global</div></li>
+    <li><div class="bullet"></div><div>Se nunca ativou nenhum benefício</div></li>
+    <li><div class="bullet"></div><div>Se é cliente Free Trial</div></li>
+    <li><div class="bullet"></div><div>Histórico de faturas e gastos no cartão (widget Bills)</div></li>
+    <li><div class="bullet"></div><div>Investimentos atuais (widget Patrimônio)</div></li>
+    <li><div class="bullet"></div><div>Cashback acumulado (widget Cashback)</div></li>
+  </ul>
+  <div class="macro">"Olá, {nome}. Me chamo {seu nome} e estou aqui para te auxiliar. Peço alguns minutos enquanto verifico as informações necessárias para prosseguir."</div>
+  <div class="divider"></div>
+  <h2>Etapa 2 — Identificar se o cliente está atritado</h2>
+  <div class="warn"><strong>⚠️ Sinais de cliente atritado:</strong> pontos de exclamação, mensagem iniciando pedindo agilidade, tom impaciente. Se atritado: não faça retenção — pergunte o motivo sem macro, registre no VoC e siga direto para o cancelamento.</div>
+  <div class="macro">"Entendo seu ponto, {nome}. Vamos prosseguir com o cancelamento."</div>
+  <div class="divider"></div>
+  <h2>Etapa 3 — Entender a decisão</h2>
+  <div class="macro">"Antes de seguirmos, poderia compartilhar o motivo do cancelamento comigo, por favor?"</div>
+  <div class="divider"></div>
+  <h2>Etapa 4 — Retenção por perfil</h2>
+  <h3>Cliente nunca ativou benefício — identificar oferta pelo perfil</h3>
+  <div class="match-row"><span class="mr-left">Pedágio / posto / estacionamento</span><span class="mr-right">→ NuTag — sem mensalidade, cobrança direto na fatura</span></div>
+  <div class="match-row"><span class="mr-left">Streaming (Netflix, AppleTV etc.)</span><span class="mr-right">→ Max — plano básico com anúncios incluso</span></div>
+  <div class="match-row"><span class="mr-left">Passagens aéreas / viagens</span><span class="mr-right">→ Nu Viagens — garantia de melhor preço + seguro viagem</span></div>
+  <div class="match-row"><span class="mr-left">Sem perfil claro</span><span class="mr-right">→ Analise o que o cliente valoriza em um banco, benefícios que são importantes para ele</span></div>
+  <h3 style="margin-top:16px">Cliente tem benefícios ativos</h3>
+  <div class="macro">"Notei que você faz bom uso do cartão de crédito. Ao cancelar o Ultravioleta, suas compras param de gerar cashback imediatamente e o valor acumulado até o momento deixa de crescer 200% CDI."</div>
+  <div class="macro">"Caso deseje reativar, isso só será possível através de uma nova análise de crédito pelo aplicativo. Não temos como reativar de forma manual. Deseja prosseguir com o cancelamento?"</div>
+  <h3 style="margin-top:16px">Cliente mencionou limite de crédito</h3>
+  <ul class="action-list">
+    <li><div class="num">1</div><div><strong>Acolha:</strong> "Entendo que você precisa de um valor maior do que o seu limite atual."</div></li>
+    <li><div class="num">2</div><div><strong>Elogie</strong> (se sem collections): "Fiz uma análise das suas faturas e vi que você faz um bom uso do cartão, mas precisamos de um pouco mais de tempo."</div></li>
+    <li><div class="num">3</div><div><strong>Ofereça alternativas:</strong> OuterLoop (se elegível) ou NuLimite Garantido.</div></li>
+  </ul>
+  <h3 style="margin-top:16px">Como justificar a mensalidade</h3>
+  <p>Divida o valor por 30 dias: R$ 89 ÷ 30 = <strong>R$ 2,96/dia</strong>. Use as brechas da conversa para conectar ao perfil do cliente.</p>
+  <div class="match-row"><span class="mr-left">Fala de viagens</span><span class="mr-right">→ NuTag · Salas VIP · Nu Viagens</span></div>
+  <div class="match-row"><span class="mr-left">Fala de guardar dinheiro</span><span class="mr-right">→ Caixinha Turbo 120% CDI</span></div>
+  <div class="match-row"><span class="mr-left">Fala de cartão</span><span class="mr-right">→ Zero IOF · spread reduzido · cashback</span></div>
+  <div class="divider"></div>
+  <h2>Referência rápida — Shuffle</h2>
+  <div class="shuf-row"><span class="sr-label">Benefícios ativos</span><span class="sr-badge">Widget Benefits</span></div>
+  <div class="shuf-row"><span class="sr-label">Faturas e gastos</span><span class="sr-badge">Widget Bills / Cartão de Crédito</span></div>
+  <div class="shuf-row"><span class="sr-label">Isenção (média 3 faturas)</span><span class="sr-badge">Widget Cartão → Isenção</span></div>
+  <div class="shuf-row"><span class="sr-label">Investimentos</span><span class="sr-badge">Widget Patrimônio / Investments</span></div>
+  <div class="shuf-row"><span class="sr-label">Cashback</span><span class="sr-badge">Widget Cashback</span></div>
+  <div class="shuf-row"><span class="sr-label">Nu Viagens</span><span class="sr-badge">Widget Travel / Nu Viagens</span></div>
+  <div class="shuf-row"><span class="sr-label">NuTag</span><span class="sr-badge">Widget NuTag</span></div>
+  <div class="shuf-row"><span class="sr-label">Plano e rollout</span><span class="sr-badge">Widget Assinaturas + Tags no perfil</span></div>
+  <div class="fnav">
+    <button class="fnav-btn" onclick="go('scripts')">Ver cards de script →</button>
+    <button class="fnav-btn" onclick="go('cancelamento')">Ir para cancelamento →</button>
+  </div>
+</div>
+
+<!-- NU+ -->
+<div id="page-nuplus" class="page">
+  <button class="back-btn" onclick="go('home')">← Voltar ao início</button>
+  <div style="display:flex;align-items:flex-start;gap:16px;margin-top:16px;margin-bottom:4px">
+    <img src="https://i.imgur.com/gCbPe4N.jpeg" style="width:90px;object-fit:contain;flex-shrink:0"/>
+    <h1>🟢 Cliente com oferta Nu+</h1>
+  </div>
+  <div class="warn"><strong>⚠️ ATENÇÃO:</strong> O downgrade para Nu+ NÃO está disponível para todos os clientes. Verifique obrigatoriamente no widget <strong>Planos de Assinatura</strong> se a opção <strong>"Conversão para oferta Nubank+"</strong> aparece. Se não aparecer, não ofereça essa opção.</div>
+  <h2>O que é o Nu+?</h2>
+  <p>O downgrade de UV para Nu+ é uma iniciativa para reter clientes que desejam cancelar, oferecendo uma transição mais suave para um produto que pode se adequar melhor às suas necessidades, sem cancelamento total.</p>
+  <h2>Quando NÃO oferecer</h2>
+  <div class="warn">Não ofereça o Nu+ para clientes com muito atrito que desejam o cancelamento rapidamente. Respeite a decisão e siga o fluxo de cancelamento.</div>
+  <h2>Comparativo de benefícios UV → Nu+</h2>
+  <table class="tbl">
+    <tr><th>Benefício</th><th>Ultravioleta</th><th>Nubank+</th></tr>
+    <tr><td><strong>Mensalidade</strong></td><td>R$ 89 (isenção: R$8k gastos ou R$50k invest.)</td><td>R$ 29 (isenção: R$3,5k gastos ou R$30k invest.)</td></tr>
+    <tr><td><strong>Cashback</strong></td><td>1,25% ou 2,2 pontos · Smiles, Azul e Latam</td><td>0,5% sem pontos · apenas Smiles</td></tr>
+    <tr><td><strong>NuTag</strong></td><td>2 tags</td><td>1 tag (nova tag: taxa de R$10)</td></tr>
+    <tr><td><strong>Caixinha Turbo</strong></td><td>120% CDI, limite R$10k</td><td>120% CDI, limite R$10k</td></tr>
+    <tr><td><strong>Investimentos exclusivos</strong></td><td>CDB, LCI/LCA e Fundos exclusivos</td><td>CDB, LCI/LCA e Fundos exclusivos</td></tr>
+    <tr><td><strong>Espaço Família UV</strong></td><td>Incluso</td><td>Não incluso</td></tr>
+    <tr><td><strong>Conta Global</strong></td><td>Incluso</td><td>Não incluso</td></tr>
+    <tr><td><strong>eSIM Internacional</strong></td><td>10GB</td><td>Não disponível</td></tr>
+    <tr><td><strong>Nu Viagens</strong></td><td>Incluso</td><td>Não incluso</td></tr>
+    <tr><td><strong>Max</strong></td><td>Gratuito c/ anúncios ou R$14,90 s/ anúncios</td><td>Mesmas condições</td></tr>
+    <tr><td><strong>Cartão físico UV</strong></td><td>Incluso</td><td>Não incluso — Platinum emitido</td></tr>
+    <tr><td><strong>Cartões adicionais</strong></td><td>Até 4</td><td>Até 1</td></tr>
+    <tr><td><strong>Saques gratuitos</strong></td><td>Incluso</td><td>Incluso</td></tr>
+    <tr><td><strong>Alertas inteligentes</strong></td><td>Incluso</td><td>Incluso</td></tr>
+  </table>
+  <h2>O que acontece com os benefícios após o downgrade</h2>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Cashback</div><div style="font-size:13px;color:#5a5a55">Valor acumulado continua disponível no cashback hub. Novas compras geram 0,5% de cashback.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">NuTag</div><div style="font-size:13px;color:#5a5a55">Tags já em uso continuam ativas. Nova tag custa R$10.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Caixinha Turbo ⚠️</div><div style="font-size:13px;color:#5a5a55"><strong>Clientes com Caixinha Turbo ativa NÃO são elegíveis ao downgrade.</strong></div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Investimentos exclusivos</div><div style="font-size:13px;color:#5a5a55">Valores já investidos continuam. A prateleira exclusiva UV deixa de estar disponível para novas aplicações.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Espaço Família UV</div><div style="font-size:13px;color:#5a5a55">Cliente integrante: continua no espaço. Cliente dono: o espaço é cancelado e todos os integrantes perdem o vínculo.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Conta Global</div><div style="font-size:13px;color:#5a5a55">Se ativa: permanece acessível. Se não ativa: não poderá criar nova conta global após virar Nu+.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">eSIM Internacional</div><div style="font-size:13px;color:#5a5a55">Se ativado: consegue usar até esgotar os 10GB. Acompanhe via widget Nu Viagens → eSIM de Viagem.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Nu Viagens</div><div style="font-size:13px;color:#5a5a55">Se houver passagem comprada: acesso aos documentos via e-mail. Se não houver: não terá mais acesso.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Max</div><div style="font-size:13px;color:#5a5a55">Se assinatura ativa: permanece com o mesmo plano. Se não tiver: plano gratuito c/ anúncios ou R$14,90 s/ anúncios.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Cartão físico UV</div><div style="font-size:13px;color:#5a5a55">Será cancelado automaticamente e um cartão Platinum é emitido.</div></div>
+  <div class="opt-card" style="cursor:default"><div class="oc-tag">Cartões adicionais</div><div style="font-size:13px;color:#5a5a55">Serão cancelados. O cliente poderá gerar 1 novo cartão adicional como Nu+.</div></div>
+  <h2>O que acontece imediatamente após o downgrade</h2>
+  <ul class="action-list">
+    <li><div class="bullet"></div><div>Cobrança proporcional da mensalidade UV vigente</div></li>
+    <li><div class="bullet"></div><div>Cartão físico UV cancelado automaticamente e Platinum emitido</div></li>
+    <li><div class="bullet"></div><div>Cartões virtuais cancelados — cliente precisa emitir novos via app</div></li>
+  </ul>
+  <h2>Passo a passo no Shuffle</h2>
+  <ul class="action-list">
+    <li><div class="num teal">1</div><div>No widget <strong>Planos de Assinatura</strong>, verifique se a opção <strong>"Conversão para oferta Nubank+"</strong> aparece. Se não aparecer, o cliente não é elegível — siga o fluxo de cancelamento normalmente.</div></li>
+    <li><div class="num teal">2</div><div>Realize o atendimento de retenção. Se o cliente seguir para o cancelamento, apresente a opção de Nu+, frisando quais benefícios permanecem e quais mudam.</div></li>
+    <li><div class="num teal">3</div><div>Informe que ao aceitar a oferta, o cliente também está aceitando os Termos e Condições — envie o link no chat.</div></li>
+    <li><div class="num teal">4</div><div><strong>⚠️ IMPORTANTE:</strong> Só siga com a alteração após o aceite explícito do cliente — verbal (phone) ou via chat. Nunca conclua sem o aceite.</div></li>
+    <li><div class="num teal">5</div><div>Com o aceite confirmado, clique em <strong>Conversão para oferta Nubank+</strong> no widget Planos de Assinatura.</div></li>
+  </ul>
+  <div class="info">Se após concluir todo o processo o cliente continuar na assinatura Ultravioleta, abra um <strong>BundleOps com Downgrade UV para Nu+</strong> e solicite 3 dias úteis para retornar ao cliente.</div>
+  <h2>Cliente não elegível que quer ser Nu+</h2>
+  <p>Se a opção de Conversão não aparecer no Shuffle, informe ao cliente que as análises são automáticas e que cancelando o Ultravioleta não é possível garantir que ele receberá uma oferta Nu+.</p>
+  <div class="fnav"><button class="fnav-btn" onclick="go('cancelamento')">Ver opções de cancelamento →</button></div>
+</div>
+
+<!-- CANCELAMENTO -->
+<div id="page-cancelamento" class="page">
+  <button class="back-btn" onclick="go('home')">← Voltar ao início</button>
+  <div style="display:flex;align-items:flex-start;gap:16px;margin-top:16px;margin-bottom:4px">
+    <img src="https://i.imgur.com/U2U0C4A.jpeg" style="width:90px;object-fit:contain;flex-shrink:0"/>
+    <h1>🔴 Cancelamento</h1>
+  </div>
+  <p>Após a tentativa de retenção (e apresentação do Nu+ se elegível), apresente as três opções ao cliente:</p>
+  <h2>Macro de apresentação das opções — Passo 1</h2>
+  <div class="macro">"Agradeço por compartilhar o motivo do cancelamento. Para seguirmos, você precisa escolher entre essas opções:<br><br><strong>Opção 1:</strong> Cancelamento sem emissão de cartão — Todos os seus cartões serão cancelados permanentemente. Sua conta Nubank continua ativa.<br><br><strong>Opção 2:</strong> Cancelar o Ultravioleta e emitir um cartão Platinum na função débito — Você recebe um novo cartão Platinum na função débito, sem mensalidade.<br><br><strong>Opção 3:</strong> Cancelar o Ultravioleta e emitir um cartão Platinum débito e crédito — Você recebe um novo cartão Platinum com as funções débito e crédito, sem mensalidade.<br><br>Qual dessas opções você prefere?"</div>
+  <div class="warn">🚨 <strong>IMPORTANTE:</strong> Nunca utilize o termo "Roxinho" para se referir ao Cartão Platinum em nenhum momento do atendimento.</div>
+  <h2>Selecione a opção do cliente</h2>
+  <button class="opt-card" onclick="go('op1')"><div class="oc-tag">Opção 1</div><div class="oc-title">Cancelamento sem emissão de cartão</div><div class="oc-sub">Todos os cartões cancelados · conta Nubank permanece ativa</div></button>
+  <button class="opt-card" onclick="go('op2')"><div class="oc-tag">Opção 2</div><div class="oc-title">Cancelar UV + emitir Platinum débito</div><div class="oc-sub">Reemissão de cartão débito · confirmar endereço</div></button>
+  <button class="opt-card" onclick="go('op3')"><div class="oc-tag">Opção 3</div><div class="oc-title">Cancelar UV + emitir Platinum débito e crédito</div><div class="oc-sub">Reemissão de cartão débito+crédito · confirmar endereço · adicionais reemitidos</div></button>
+  <div class="fnav">
+    <button class="fnav-btn" onclick="go('reembolso')">Passo a passo — Reembolso →</button>
+    <button class="fnav-btn" onclick="go('inadimplencia')">Cancelamento por inadimplência →</button>
+  </div>
+</div>
+
+<!-- OPÇÃO 1 -->
+<div id="page-op1" class="page">
+  <button class="back-btn" onclick="go('cancelamento')">← Voltar às opções</button>
+  <h1 style="margin-top:16px">Opção 1 — Cancelamento sem emissão de cartão</h1>
+  <p>Cancelamento da assinatura UV sem reemissão de cartões. Todos os cartões são cancelados permanentemente. A conta Nubank permanece ativa.</p>
+  <div class="info">⚠️ É OBRIGATÓRIO que o cliente concorde com os termos e condições antes de qualquer ação no Shuffle.</div>
+  <h2>Termos e condições — Chat</h2>
+  <p style="font-size:12px;color:#613399;margin-bottom:4px">Macro: UV - Cancelamento - Envio de link com condições do cancelamento - Passo 2</p>
+  <div class="macro">"Agora, para seguir com seu cancelamento, vou reforçar alguns pontos-chave: O cancelamento do Ultravioleta é irreversível — se mudar de ideia no futuro, será preciso aguardar uma nova análise automática. Todos os benefícios exclusivos serão descontinuados: NuTag (bloqueio em até 4h), Cashback (acúmulo e rendimento interrompidos imediatamente, saldo disponível para resgate), Max (cancelamento em até 5 dias úteis), Caixinha Turbo (encerrada, recursos resgatados e creditados na conta), Conta Global (permanece ativa, mas perde o spread zero). Agora que você já sabe os principais impactos, posso seguir com o cancelamento do seu Ultravioleta?"</div>
+  <h2>Termos e condições — Telefone</h2>
+  <p style="font-size:12px;color:#613399;margin-bottom:4px">Macro: UV - Cancelamento - TELEFONE - Condições do cancelamento - Passo 2</p>
+  <div class="macro">"Antes de seguir com o cancelamento, vou te explicar rapidamente os principais pontos. O cancelamento é irreversível — não conseguimos reativar manualmente. Sobre a mensalidade: se não tiver atingido as condições de isenção, pode haver cobrança proporcional, mas faremos o ajuste para você. Os benefícios serão encerrados: cashback para de acumular (saldo liberado para resgate), NuTag bloqueada em até 4h, Caixinha Turbo encerrada (valor vai direto para sua conta), Max cancelado em até 5 dias úteis, Conta Global perde o spread zero. Agora que você já sabe os principais impactos, posso seguir?"</div>
+  <h2>Passo a passo no Shuffle</h2>
+  <ul class="action-list">
+    <li><div class="num coral">1</div><div>Widget <strong>Planos de Assinatura</strong> → 3 pontinhos → <strong>Cancelar plano sem reemissão</strong> → Digite <code>inOBl</code> → Confirmar cancelamento.</div></li>
+    <li><div class="num coral">2</div><div>Widget <strong>Cartões</strong> → <strong>Cancelar Cartões</strong> → selecionar <strong>Cancelar Débito e Crédito</strong>.</div></li>
+    <li><div class="num coral">3</div><div>Atualize o widget <strong>Planos de Assinatura</strong> e verifique se houve cobrança da última mensalidade ou cobrança proporcional.</div></li>
+    <li><div class="num coral">4</div><div><strong>Se NÃO foi cobrado:</strong><div class="macro" style="margin-top:6px">"Agradecemos pela confirmação dos termos e condições. A partir de agora, todos os seus cartões foram cancelados permanentemente."</div><strong>Se FOI cobrado:</strong> faça o ajuste na fatura → <button class="fnav-btn" style="display:inline;padding:3px 10px;font-size:11px" onclick="go('reembolso')">ver Reembolso</button><div class="macro" style="margin-top:6px">"Agradecemos pela confirmação dos termos e condições. A partir de agora, todos os seus cartões foram cancelados permanentemente. Em caráter de exceção, fiz o ajuste da última mensalidade na sua fatura atual."</div></div></li>
+    <li><div class="num coral">5</div><div><div class="macro">"Foi um prazer falar com você hoje, aproveito para lhe desejar um ótimo dia e uma excelente semana."</div></div></li>
+  </ul>
+</div>
+
+<!-- OPÇÃO 2 -->
+<div id="page-op2" class="page">
+  <button class="back-btn" onclick="go('cancelamento')">← Voltar às opções</button>
+  <h1 style="margin-top:16px">Opção 2 — Cancelar UV + emitir Platinum débito</h1>
+  <p>Cancelamento da assinatura UV com emissão de novo cartão Platinum apenas com função débito.</p>
+  <div class="info">⚠️ É OBRIGATÓRIO que o cliente concorde com os T&amp;C antes de qualquer ação. Use as mesmas macros de termos e condições da Opção 1.</div>
+  <h2>Passo a passo no Shuffle</h2>
+  <ul class="action-list">
+    <li><div class="num coral">1</div><div>Confirme o endereço com a macro <strong>UV - Reemissão de cartão/Troca de categoria - Confirmação de endereço</strong>:<div class="macro" style="margin-top:6px">"Para seguirmos com a reemissão, pode me confirmar o seu endereço de entrega completo? Se for necessária alguma alteração, me informe: CEP, número e complemento."</div></div></li>
+    <li><div class="num coral">2</div><div>Se necessário alterar o endereço: widget <strong>Informações Pessoais</strong> → <strong>Endereço de entrega</strong> → preencher os novos dados → <strong>Salvar</strong>.</div></li>
+    <li><div class="num coral">3</div><div>Widget <strong>Planos de Assinatura</strong> → 3 pontinhos → <strong>Cancelar Plano e Reemitir apenas débito</strong> → Digite <code>inOBl</code> → Confirmar.</div></li>
+    <li><div class="num coral">4</div><div>Widget <strong>Cartões</strong> → <strong>Cancelar Cartões</strong> → selecionar <strong>Cancelar apenas Crédito</strong>.</div></li>
+    <li><div class="num coral">5</div><div>Atualize o widget <strong>Planos de Assinatura</strong> e verifique cobrança de mensalidade.</div></li>
+    <li><div class="num coral">6</div><div><strong>Se NÃO foi cobrado:</strong><div class="macro" style="margin-top:6px">"O cancelamento do Nubank Ultravioleta e dos benefícios já está em andamento, e seu novo cartão será entregue em até XX dias úteis. Seu cartão Ultravioleta seguirá ativo até a chegada do novo sem os benefícios."</div><strong>Se FOI cobrado:</strong> faça o ajuste → <button class="fnav-btn" style="display:inline;padding:3px 10px;font-size:11px" onclick="go('reembolso')">ver Reembolso</button><div class="macro" style="margin-top:6px">"O cancelamento já está em andamento e seu novo cartão será entregue em até XX dias úteis. Notei que houve a cobrança da mensalidade neste mês e, em caráter de exceção, realizei o estorno na sua fatura atual."</div></div></li>
+    <li><div class="num coral">7</div><div><div class="macro">"Foi um prazer falar com você hoje, aproveito para lhe desejar um ótimo dia e uma excelente semana."</div></div></li>
+  </ul>
+</div>
+
+<!-- OPÇÃO 3 -->
+<div id="page-op3" class="page">
+  <button class="back-btn" onclick="go('cancelamento')">← Voltar às opções</button>
+  <h1 style="margin-top:16px">Opção 3 — Cancelar UV + emitir Platinum débito e crédito</h1>
+  <p>Cancelamento da assinatura UV com emissão de novo cartão Platinum com funções débito e crédito. Cartões adicionais também são reemitidos.</p>
+  <div class="info">⚠️ É OBRIGATÓRIO que o cliente concorde com os T&amp;C antes de qualquer ação. Use as mesmas macros de termos e condições da Opção 1.</div>
+  <h2>Passo a passo no Shuffle</h2>
+  <ul class="action-list">
+    <li><div class="num coral">1</div><div>Confirme o endereço com a macro <strong>UV - Reemissão de cartão/Troca de categoria - Confirmação de endereço</strong> (mesmo script da Opção 2).</div></li>
+    <li><div class="num coral">2</div><div>Se necessário alterar o endereço: widget <strong>Informações Pessoais</strong> → <strong>Endereço de entrega</strong> → preencher → <strong>Salvar</strong>.</div></li>
+    <li><div class="num coral">3</div><div>Widget <strong>Planos de Assinatura</strong> → 3 pontinhos → <strong>Cancelar Plano e Emitir cartões</strong> → Digite <code>inOBl</code> → Confirmar.</div></li>
+    <li><div class="num coral">4</div><div>Atualize o widget <strong>Planos de Assinatura</strong> e verifique cobrança de mensalidade.</div></li>
+    <li><div class="num coral">5</div><div><strong>Se NÃO foi cobrado:</strong><div class="macro" style="margin-top:6px">"O cancelamento do Nubank Ultravioleta e dos benefícios já está em andamento, e seu novo cartão será entregue em até XX dias úteis. Seu cartão Ultravioleta seguirá ativo até a chegada do novo sem os benefícios."</div><strong>Se FOI cobrado:</strong> faça o ajuste → <button class="fnav-btn" style="display:inline;padding:3px 10px;font-size:11px" onclick="go('reembolso')">ver Reembolso</button><div class="macro" style="margin-top:6px">"O cancelamento já está em andamento e seu novo cartão será entregue em até XX dias úteis. Notei que houve a cobrança da mensalidade neste mês e, em caráter de exceção, realizei o estorno na sua fatura atual."</div></div></li>
+    <li><div class="num coral">6</div><div><div class="macro">"Foi um prazer falar com você hoje, aproveito para lhe desejar um ótimo dia e uma excelente semana."</div></div></li>
+  </ul>
+</div>
+
+<!-- REEMBOLSO -->
+<div id="page-reembolso" class="page">
+  <button class="back-btn" onclick="go('cancelamento')">← Voltar às opções</button>
+  <h1 style="margin-top:16px">Reembolso de mensalidade</h1>
+  <div class="warn"><strong>IMPORTANTE:</strong> o reembolso é feito para todos os clientes que cancelam. Realize SOMENTE APÓS o cancelamento ou troca de categoria estar concluído.</div>
+  <h2>Passo a passo</h2>
+  <ul class="action-list">
+    <li><div class="num">1</div><div>Atualize o widget <strong>Planos de Assinatura</strong> e verifique se houve cobrança proporcional. Se houver valor a reembolsar, clique em <strong>Reembolsar</strong>.</div></li>
+    <li><div class="num">2</div><div>Verifique no widget <strong>Faturas</strong> se o crédito foi lançado na fatura em aberto.</div></li>
+    <li><div class="num">3</div><div><strong>Se o botão Reembolsar exibir erro</strong>, faça o ajuste manualmente:</div></li>
+  </ul>
+  <h3>3.1 — Planilha de ajuste</h3>
+  <p>Abra a planilha e faça uma cópia (File → Make a copy). Salve nos seus favoritos para reutilizar em outros atendimentos.</p>
+  <h3>3.2 — Preencha os campos</h3>
+  <table class="tbl">
+    <tr><th>Campo</th><th>Valor</th></tr>
+    <tr><td>Qual a origem?</td><td>UV</td></tr>
+    <tr><td>Qual ajuste?</td><td>Crédito</td></tr>
+    <tr><td>Qual é o produto?</td><td>[CT] Mensalidade UV</td></tr>
+    <tr><td>Qual o motivo do ajuste?</td><td>Experiência</td></tr>
+    <tr><td>Qual a data?</td><td>Dia do atendimento</td></tr>
+    <tr><td>Valor</td><td>Digite o valor a ser ajustado e aperte Enter</td></tr>
+  </table>
+  <p>A planilha vai gerar o código: <code>UV_CRED_MENSUV_EXP</code></p>
+  <h3 style="margin-top:16px">3.3 — Reportar no Shuffle</h3>
+  <ul class="action-list">
+    <li><div class="num">a</div><div>Widget <strong>Conta</strong> → 3 pontinhos → <strong>Reportar erro ops</strong>.</div></li>
+    <li><div class="num">b</div><div>Campo <strong>Squad:</strong> Bills &amp; Payments · <strong>Classifications:</strong> Transfer-in-error.</div></li>
+    <li><div class="num">c</div><div>Campo <strong>Descrição e valor:</strong> insira <code>UV_CRED_MENSUV_EXP</code> + o mesmo valor gerado na planilha.</div></li>
+  </ul>
+</div>
+
+<!-- INADIMPLÊNCIA -->
+<div id="page-inadimplencia" class="page">
+  <button class="back-btn" onclick="go('cancelamento')">← Voltar às opções</button>
+  <h1 style="margin-top:16px">Cancelamento por falta de pagamento</h1>
+  <p>Quando o cliente não cumpre os critérios de isenção, a mensalidade é cobrada (R$ 89 novos clientes / R$ 49 clientes antigos). Se não houver limite disponível, o Nubank tenta cobrar por 20 dias — sem sucesso, a assinatura é cancelada automaticamente no 20º dia.</p>
+  <h2>Verificar o fluxo — rollout <code>ultravioleta-overlimit-check</code></h2>
+  <div class="pill-row">
+    <div class="pill pill-blue"><div class="pill-tag">CONTROL</div><div class="pill-desc">Cobrança segue acima do limite disponível (fluxo atual).</div></div>
+    <div class="pill pill-purple"><div class="pill-tag">TREATMENT</div><div class="pill-desc">Cobrança só ocorre com limite disponível. Sem limite → fluxo de 20 dias.</div></div>
+  </div>
+  <h2>Cliente recebeu notificação de cobrança negada (Treatment)</h2>
+  <div class="macro">"Verifiquei que você recebeu uma comunicação sobre o pagamento da mensalidade do Ultravioleta que foi negado. Isso aconteceu porque não havia limite de crédito suficiente no momento da cobrança. Para evitar o cancelamento, é importante que você libere o limite necessário. Você pode fazer isso de duas formas: 1) Pré-pagamento da sua fatura: no app, vá em 'Pagar' → 'Fatura do cartão Nubank'. 2) Ajuste do limite de crédito disponível: no app, vá em 'Cartão de Crédito' → 'Meus Limites'. Se o pagamento não for realizado nesse período, não é possível reativar a assinatura."</div>
+  <h2>Cliente entrou em contato após cancelamento automático</h2>
+  <div class="macro">"Entendo sua dúvida sobre o cancelamento da sua assinatura Ultravioleta. Conforme a nova regra, quando não há limite de crédito suficiente para a cobrança da mensalidade, após 20 dias de tentativas sem sucesso, a assinatura é cancelada automaticamente. Após o cancelamento por falta de pagamento, não é possível reativar a assinatura — você precisará aguardar uma nova oferta."</div>
+  <h2>Pontos importantes</h2>
+  <ul class="action-list">
+    <li><div class="bullet"></div><div>Reativação não é possível — cliente deve aguardar nova oferta automática.</div></li>
+    <li><div class="bullet"></div><div>Cashback acumulado pode ser resgatado para a conta ou usado para abater a fatura.</div></li>
+    <li><div class="bullet"></div><div>Max Plano Básico com Anúncios: cancelado em até 24h.</div></li>
+    <li><div class="bullet"></div><div>Max Plano Standard sem Anúncios: acesso até fim do ciclo pago, sem renovação.</div></li>
+  </ul>
+</div>
+
+<!-- SCRIPTS -->
+<div id="page-scripts" class="page">
+  <button class="back-btn" onclick="go('home')">← Voltar ao início</button>
+  <h1 style="margin-top:16px">Cards de Script</h1>
+  <p style="margin-bottom:16px">Referência rápida durante o atendimento.</p>
+  <div class="tab-row">
+    <button class="tab active" onclick="filterScripts('abertura',this)">Abertura</button>
+    <button class="tab" onclick="filterScripts('beneficios',this)">Benefícios</button>
+    <button class="tab" onclick="filterScripts('atritado',this)">Atritado</button>
+    <button class="tab" onclick="filterScripts('mensalidade',this)">Mensalidade</button>
+    <button class="tab" onclick="filterScripts('limite',this)">Limite</button>
+    <button class="tab" onclick="filterScripts('cancelamento_s',this)">Cancelamento</button>
+  </div>
+  <div id="scripts-container"></div>
+</div>
+
+<!-- MACROS -->
+<div id="page-macros" class="page">
+  <button class="back-btn" onclick="go('home')">← Voltar ao início</button>
+  <h1 style="margin-top:16px">Macros</h1>
+  <p style="margin-bottom:16px">Textos prontos para uso durante o atendimento. Clique em <strong>Copiar</strong> para usar diretamente no chat.</p>
+  <div class="tab-row">
+    <button class="tab active" onclick="filterMacros('cancelamento',this)">Cancelamento</button>
+    <button class="tab" onclick="filterMacros('retencao',this)">Retenção</button>
+    <button class="tab" onclick="filterMacros('nuplus_m',this)">Nu+</button>
+  </div>
+  <div id="macros-container"></div>
+</div>
+
+</div>
+
+<script>
+function go(p){
+  var pages=document.querySelectorAll('.page');
+  for(var i=0;i<pages.length;i++){pages[i].classList.remove('active');}
+  document.getElementById('page-'+p).classList.add('active');
+  window.scrollTo(0,0);
+  if(p==='scripts'){renderScripts('abertura');}
+  if(p==='macros'){renderMacros('cancelamento');}
+}
+
+var scriptsData=[
+  {id:1,cat:'abertura',tag:'Abertura geral',color:'purple',title:'Saudação enquanto analisa o perfil',script:'Olá, {nome do cliente}. Me chamo {seu nome} e estou aqui para te auxiliar. Peço alguns minutos enquanto verifico as informações necessárias para prosseguir.',tip:'Use esse script para ganhar tempo enquanto analisa o Shuffle sem deixar o cliente esperando sem resposta.'},
+  {id:2,cat:'abertura',tag:'Entender motivo',color:'purple',title:'Perguntar o motivo de forma leve',script:'Antes de seguirmos, poderia compartilhar o motivo do cancelamento comigo, por favor?',alt:'Antes de seguirmos, gostaria de deixar um feedback sobre o produto Ultravioleta?',tip:'Use a alternativa quando o cliente parece mais aberto e receptivo.'},
+  {id:3,cat:'abertura',tag:'Conexão',color:'purple',title:'Demonstrar empatia pela decisão',script:'Poxa, que pena saber que você deseja cancelar o seu Ultravioleta. Mas fique tranquilo(a) que eu vou te ajudar com o cancelamento por aqui. Poderia apenas compartilhar o motivo comigo, por favor?',tip:'Evite frases como não vamos cancelar não. Acolha, mas mantenha o caminho aberto.'},
+  {id:4,cat:'abertura',tag:'Cliente Rewards',color:'purple',title:'Contexto para clientes migrados do Rewards',script:'Analisando seu perfil, notei que você é cliente há algum tempo e fez parte do programa Rewards. Com o encerramento do Rewards, realizamos a migração para o Ultravioleta. Poderia compartilhar comigo se algo aconteceu ou se ficou alguma dúvida sobre os seus benefícios atuais?',tip:'Identifique no Shuffle se o plano é Ultravioleta (Rewards Migration). Verifique se o limite está abaixo de R$ 5 mil.'},
+  {id:5,cat:'beneficios',tag:'NuTag',color:'teal',title:'Cliente com cobranças de pedágio / posto',script:'Enquanto analisava seu perfil, verifiquei que você ainda não ativou nenhum benefício Ultravioleta, como a NuTag. Ela é nossa tag de pedágios e estacionamentos, sem mensalidade e com cobrança direto na sua fatura. Gostaria de saber mais ou deseja prosseguir com o cancelamento?',tip:'Confirme no Shuffle: widget NuTag — se não houver tag ativa e houver cobranças de pedágio na fatura, essa é a oferta certa.'},
+  {id:6,cat:'beneficios',tag:'Max',color:'teal',title:'Cliente com cobranças de streaming',script:'Enquanto analisava seu perfil, verifiquei que você ainda não ativou nenhum benefício Ultravioleta, como a assinatura da Max. Você pode assistir filmes, séries, esportes e muito mais, sem custo adicional no plano Básico com anúncios. Gostaria de saber mais ou deseja prosseguir com o cancelamento?',tip:'Verifique no widget Benefits se o Max está inativo. Se o cliente paga streaming na fatura, o Max é a oferta mais relevante.'},
+  {id:7,cat:'beneficios',tag:'Nu Viagens',color:'teal',title:'Cliente com gastos em passagens / viagens',script:'Analisando seu perfil, notei que você ainda não usou nenhum benefício Ultravioleta, como o Nu Viagens. Você pode comprar passagens aéreas e hospedagens com garantia de melhor preço e seguro viagem incluso. Gostaria de saber mais ou deseja prosseguir com o cancelamento?',tip:'Confirme compras no widget NuPay / Nu Viagens. Se houver histórico de passagens ou hotéis, reforce essa oferta.'},
+  {id:8,cat:'beneficios',tag:'Sem perfil claro',color:'teal',title:'Sem oferta óbvia',script:'Enquanto analisava seu perfil, verifiquei que você ainda não ativou nenhum benefício Ultravioleta. Gostaria de entender melhor o que você mais valoriza em um banco para te apresentar o que faz mais sentido para o seu dia a dia.',tip:'Use quando não há um match claro de perfil. Explore o que o cliente valoriza antes de sugerir um benefício.'},
+  {id:9,cat:'beneficios',tag:'Benefícios ativos',color:'teal',title:'Informar perda dos benefícios ativos',script:'Notei que você faz bom uso do cartão de crédito. Ao cancelar o Ultravioleta, suas compras param de gerar cashback imediatamente e o valor acumulado até o momento deixa de crescer 200% CDI.',tip:'Complemente informando que a reativação após cancelamento só é possível via nova análise de crédito.'},
+  {id:10,cat:'beneficios',tag:'Reativação',color:'teal',title:'Alertar sobre impossibilidade de reativação manual',script:'Caso deseje reativar o Ultravioleta no futuro, isso só será possível através de uma nova análise de crédito pelo aplicativo. Não temos como reativar de forma manual. Deseja prosseguir com o cancelamento?',tip:'Esse aviso é importante para clientes indecisos — muitos voltam atrás quando entendem que não é reversível facilmente.'},
+  {id:11,cat:'atritado',tag:'Cliente atritado',color:'coral',title:'Acolher e encaminhar sem insistir',script:'Entendo seu ponto, {nome}. Vamos prosseguir com o cancelamento.',tip:'Sinais: pontos de exclamação, pedido de agilidade, tom impaciente. Não tente fazer retenção — registre o VoC e siga o fluxo.'},
+  {id:12,cat:'atritado',tag:'Coletar feedback',color:'coral',title:'Perguntar motivo sem macro',script:'Antes de finalizarmos, você conseguiria me dizer o que motivou sua decisão? Esse feedback é muito importante para que possamos melhorar nossos produtos.',tip:'Pergunte sem usar macro. Registre o motivo no formulário Voice of Customer antes de efetuar o cancelamento.'},
+  {id:13,cat:'mensalidade',tag:'Mensalidade',color:'amber',title:'Apresentar a mensalidade por dia',script:'Entendo que a mensalidade pode parecer alta. Uma forma de ver isso: dividindo os R$ {valor} por 30 dias, o investimento diário é de R$ {valor/30}. Com esse valor por dia, você tem acesso a todos os benefícios Ultravioleta.',tip:'Exemplo: R$ 89 ÷ 30 = R$ 2,96/dia. Adapte conforme o plano do cliente.'},
+  {id:14,cat:'mensalidade',tag:'Viagens',color:'amber',title:'Justificar mensalidade para perfil viajante',script:'Pensando no seu perfil, com o Ultravioleta você tem a NuTag sem mensalidade para pedágios e estacionamentos, acesso a salas VIP Priority Pass e o Nu Viagens com garantia de melhor preço. São benefícios que, usados juntos, facilmente superam o valor da mensalidade.',tip:'Use quando o cliente menciona viagens, pedágios ou tiver gastos visíveis nessas categorias na fatura.'},
+  {id:15,cat:'mensalidade',tag:'Investimentos',color:'amber',title:'Justificar mensalidade para perfil investidor',script:'Com a Caixinha Turbo, você tem rendimento de 120% do CDI com resgate imediato. Se você deixar um valor aplicado lá, dependendo do saldo, o próprio rendimento pode cobrir o valor da mensalidade.',tip:'Verifique no widget Investimentos se o cliente já usa a Caixinha ou tem outros investimentos no Nu.'},
+  {id:16,cat:'limite',tag:'Limite de crédito',color:'blue',title:'Acolher a insatisfação com o limite',script:'Entendo que você precisa de um valor maior do que o seu limite atual. Esse é um ponto muito relevante e eu quero te ajudar a entender as possibilidades que temos.',tip:'Não prometa aumento que não existe. Verifique no Shuffle se o cliente está elegível ao OuterLoop.'},
+  {id:17,cat:'limite',tag:'Bom uso do cartão',color:'blue',title:'Elogiar comportamento de crédito (se aplicável)',script:'Fiz uma análise das suas faturas e vi que você faz um bom uso do cartão de crédito. Precisamos de um pouco mais de tempo para conceder esse aumento, mas há caminhos que podemos explorar juntos.',tip:'Use apenas para clientes sem histórico de collections. Verifique faturas no widget Bills antes de elogiar.'},
+  {id:18,cat:'limite',tag:'Alternativa de limite',color:'blue',title:'Oferecer alternativa para o limite',script:'Enquanto isso, temos algumas alternativas que podem ajudar, como o NuLimite Garantido. Gostaria de saber mais sobre como funciona, ou prefere seguir com o cancelamento?',tip:'Se o cliente estiver no OuterLoop, ofereça diretamente o novo valor disponível.'},
+  {id:19,cat:'cancelamento_s',tag:'Downgrade Platinum',color:'pink',title:'Apresentar opção de downgrade para Platinum',script:'Uma alternativa ao cancelamento completo é fazer o downgrade para o cartão Platinum. Você mantém a conta Nubank e os serviços básicos, sem mensalidade, mas perde os benefícios exclusivos do Ultravioleta. O que você prefere?',tip:'Apresente como opção intermediária antes do cancelamento total. Não utilize o termo Roxinho em nenhum momento.'},
+  {id:20,cat:'cancelamento_s',tag:'Downgrade Nu+',color:'purple',title:'Apresentar Nu+ — apenas para elegíveis',script:'Há também uma opção intermediária entre o Ultravioleta e o Platinum: o Nu+. É um plano com benefícios selecionados e mensalidade menor. Gostaria de conhecer mais antes de decidir?',tip:'ATENÇÃO: Verifique obrigatoriamente no Shuffle se o cliente possui o rollout de elegibilidade para o Nu+. Se não aparecer, NÃO ofereça essa opção.'},
+  {id:21,cat:'cancelamento_s',tag:'Encerramento positivo',color:'gray',title:'Finalizar atendimento após retenção',script:'Imagina, foi um prazer te auxiliar! Caso precise de qualquer coisa, pode sempre contar com a gente. Tenha um ótimo dia!',tip:'Registre no VoC como retido. Encerre de forma natural e positiva.'},
+  {id:22,cat:'cancelamento_s',tag:'Encerramento com cancelamento',color:'gray',title:'Finalizar atendimento após cancelamento',script:'Prosseguirei com o cancelamento por aqui. Foi um prazer ter você como cliente Ultravioleta. Caso mude de ideia no futuro, o atendimento Nubank está sempre disponível pelo aplicativo.',tip:'Registre o motivo no formulário VoC. Se o cliente foi atritado, use a narrativa curta.'},
+];
+
+var colors={
+  purple:{bg:'#EEEDFE',border:'#AFA9EC',tag:'#534AB7',tagBg:'#CECBF6',text:'#26215C'},
+  teal:  {bg:'#E1F5EE',border:'#5DCAA5',tag:'#0F6E56',tagBg:'#9FE1CB',text:'#04342C'},
+  coral: {bg:'#FAECE7',border:'#F0997B',tag:'#993C1D',tagBg:'#F5C4B3',text:'#4A1B0C'},
+  amber: {bg:'#FAEEDA',border:'#EF9F27',tag:'#854F0B',tagBg:'#FAC775',text:'#412402'},
+  blue:  {bg:'#E6F1FB',border:'#85B7EB',tag:'#185FA5',tagBg:'#B5D4F4',text:'#042C53'},
+  pink:  {bg:'#FBEAF0',border:'#ED93B1',tag:'#993556',tagBg:'#F4C0D1',text:'#4B1528'},
+  gray:  {bg:'#F1EFE8',border:'#B4B2A9',tag:'#5F5E5A',tagBg:'#D3D1C7',text:'#2C2C2A'}
+};
+
+function filterScripts(cat,btn){
+  var tabs=document.querySelectorAll('#page-scripts .tab');
+  for(var i=0;i<tabs.length;i++){tabs[i].classList.remove('active');}
+  btn.classList.add('active');
+  renderScripts(cat);
+}
+
+function renderScripts(cat){
+  var c=document.getElementById('scripts-container');
+  var filtered=[];
+  for(var i=0;i<scriptsData.length;i++){if(scriptsData[i].cat===cat){filtered.push(scriptsData[i]);}}
+  var html='';
+  for(var j=0;j<filtered.length;j++){
+    var card=filtered[j];
+    var cl=colors[card.color];
+    html+='<div class="sc-card" style="background:'+cl.bg+';border-color:'+cl.border+'">'
+      +'<span class="sc-tag" style="background:'+cl.tagBg+';color:'+cl.tag+'">'+card.tag+'</span>'
+      +'<div class="sc-title" style="color:'+cl.text+'">'+card.title+'</div>'
+      +'<div class="sc-box" style="background:rgba(255,255,255,0.55);border:1px solid '+cl.border+'">'
+      +'<div class="sc-label" style="color:'+cl.tag+'">Script</div>'
+      +'<div class="sc-text" style="color:'+cl.text+'">"'+card.script+'"</div>'
+      +(card.alt?'<div class="sc-divider" style="border-color:'+cl.border+'"></div><div class="sc-label" style="color:'+cl.tag+'">Alternativa</div><div class="sc-text" style="color:'+cl.text+'">"'+card.alt+'"</div>':'')
+      +'</div>'
+      +'<div class="sc-footer">'
+      +'<button class="sc-tip-btn" style="color:'+cl.tag+'" onclick="toggleTip('+card.id+')">&#9658; Ver dica de uso</button>'
+      +'<button class="sc-copy" id="copy-'+card.id+'" style="color:'+cl.tag+';border-color:'+cl.border+';background:rgba(255,255,255,0.6)" onclick="copyScript('+card.id+')">Copiar</button>'
+      +'</div>'
+      +'<div id="tip-'+card.id+'" class="sc-tip hidden" style="background:rgba(255,255,255,0.4);border-color:'+cl.border+';color:'+cl.text+'">'+card.tip+'</div>'
+      +'</div>';
+  }
+  c.innerHTML=html;
+}
+
+function toggleTip(id){
+  var tip=document.getElementById('tip-'+id);
+  var hidden=tip.classList.toggle('hidden');
+  var btn=tip.previousElementSibling.querySelector('.sc-tip-btn');
+  btn.innerHTML=hidden?'&#9658; Ver dica de uso':'&#9660; Ocultar dica';
+}
+
+function copyScript(id){
+  var card=null;
+  for(var i=0;i<scriptsData.length;i++){if(scriptsData[i].id===id){card=scriptsData[i];break;}}
+  if(!card)return;
+  navigator.clipboard.writeText(card.script).catch(function(){});
+  var b=document.getElementById('copy-'+id);
+  b.textContent='Copiado!';
+  b.style.background='#534AB7';
+  b.style.color='#fff';
+  setTimeout(function(){b.textContent='Copiar';b.style.background='rgba(255,255,255,0.6)';b.style.color=colors[card.color].tag;},1800);
+}
+
+var macrosData=[
+  {id:'m1',cat:'cancelamento',nome:'Introdução ao atendimento Ultravioleta',texto:'Eu sou o(a) XXXX, seu especialista Ultravioleta e vou seguir com o atendimento. Saiba que você é nossa prioridade agora. Conte comigo!'},
+  {id:'m2',cat:'cancelamento',nome:'UV - Motivo do cancelamento - Passo 0',texto:'Estou analisando seu perfil para entender melhor o seu histórico com a gente. Assim que tiver um retorno, te aviso por aqui. Mesmo que o app esteja minimizado, você será notificado. Enquanto isso, o que te levou a considerar essa decisão?'},
+  {id:'m3',cat:'cancelamento',nome:'UV - Cancelamento - Opções de cancelamento - Passo 1',texto:'Agradeço por compartilhar o motivo do cancelamento! Para seguirmos, você precisa escolher entre essas opções:\n\nOpção 1: Cancelamento sem emissão de cartão\nTodos os seus cartões (incluindo os adicionais e virtuais) serão cancelados permanentemente. Sua conta Nubank continua ativa.\n\nOpção 2: Cancelar o Ultravioleta e emitir um cartão Platinum na função débito\nVocê recebe um novo cartão Platinum na função débito, sem mensalidade. Seus cartões adicionais e virtuais serão cancelados.\n\nOpção 3: Cancelar o Ultravioleta e emitir um cartão Platinum débito e crédito\nVocê recebe um novo cartão Platinum com as funções débito e crédito, sem mensalidade. Cartões adicionais também serão reemitidos.\n\nQual dessas opções você prefere?'},
+  {id:'m4',cat:'cancelamento',nome:'UV - Cancelamento - Envio de link com condições - Passo 2',texto:'O cancelamento do Ultravioleta é irreversível, então se você mudar de ideia no futuro, será preciso aguardar uma nova análise automática. Além disso, todos os benefícios exclusivos do seu cartão serão descontinuados, como:\n\nNuTag: Bloqueio em até 4h.\nCashback: O acúmulo e o rendimento são interrompidos imediatamente, mas o saldo disponível pode ser resgatado a qualquer momento.\nMax: Cancelamento em até 5 dias úteis.\nCaixinha Turbo: Será encerrada, e o valor será creditado automaticamente na sua conta do Nubank.\nCaso tenha a Conta Global, ela permanecerá ativa, porém, perderá o benefício de spread zero.\n\nAo confirmar o cancelamento, você estará de acordo com os termos e condições disponíveis no item 2 em:\nhttps://nubank.com.br/contratos/contrato-e-regulamento-nubank-ultravioleta\n\nPor favor, revise tudo e me confirme se está de acordo para prosseguirmos com o processo. Combinado?'},
+  {id:'m5',cat:'cancelamento',nome:'UV - Reemissão de cartão - Confirmação de endereço',texto:'Para seguirmos com a reemissão, pode me confirmar o seu endereço de entrega completo? Se for necessário alguma alteração, por favor, me informe:\n- CEP,\n- Número;\n- Complemento do novo endereço'},
+  {id:'m6',cat:'cancelamento',nome:'UV - Reemissão de cartão - COM AJUSTE de mensalidade',texto:'Seu endereço de entrega foi atualizado com sucesso! O cancelamento do Nubank Ultravioleta e dos benefícios já está em andamento, e seu novo cartão será entregue em até XX dias úteis. Notei que houve a cobrança da mensalidade neste mês e, em caráter de exceção, realizei o estorno na sua fatura atual.'},
+  {id:'m7',cat:'cancelamento',nome:'UV - Reemissão de cartão - SEM AJUSTE de mensalidade',texto:'Seu endereço de entrega foi atualizado com sucesso! O cancelamento do Nubank Ultravioleta e dos benefícios já está em andamento, e seu novo cartão será entregue em até XX dias úteis.'},
+  {id:'m8',cat:'cancelamento',nome:'Macro despedida',texto:'Foi um prazer falar com você hoje, aproveito para lhe desejar um ótimo dia e uma excelente semana.'},
+];
+
+function filterMacros(cat,btn){
+  var tabs=document.querySelectorAll('#page-macros .tab');
+  for(var i=0;i<tabs.length;i++){tabs[i].classList.remove('active');}
+  btn.classList.add('active');
+  renderMacros(cat);
+}
+
+function renderMacros(cat){
+  var c=document.getElementById('macros-container');
+  var filtered=[];
+  for(var i=0;i<macrosData.length;i++){if(macrosData[i].cat===cat){filtered.push(macrosData[i]);}}
+  if(filtered.length===0){
+    c.innerHTML='<div class="info" style="margin-top:8px">Em breve — macros desta seção serão adicionadas em breve.</div>';
+    return;
+  }
+  var html='';
+  for(var j=0;j<filtered.length;j++){
+    var m=filtered[j];
+    html+='<div class="macro-card">'
+      +'<div class="macro-nome">'+m.nome+'</div>'
+      +'<div class="macro-texto">'+m.texto.replace(/\n/g,'<br>')+'</div>'
+      +'<div class="macro-footer">'
+      +'<button class="macro-copy" id="mcopy-'+m.id+'" onclick="copyMacro(\''+m.id+'\')">Copiar</button>'
+      +'</div></div>';
+  }
+  c.innerHTML=html;
+}
+
+function copyMacro(id){
+  var m=null;
+  for(var i=0;i<macrosData.length;i++){if(macrosData[i].id===id){m=macrosData[i];break;}}
+  if(!m)return;
+  navigator.clipboard.writeText(m.texto).catch(function(){});
+  var b=document.getElementById('mcopy-'+id);
+  b.textContent='Copiado!';
+  b.style.background='#534AB7';
+  b.style.color='#fff';
+  setTimeout(function(){b.textContent='Copiar';b.style.background='#EEEDFE';b.style.color='#534AB7';},1800);
+}
+
+renderScripts('abertura');
+renderMacros('cancelamento');
+</script>
+</body>
+</html>
